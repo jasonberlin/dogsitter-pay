@@ -228,13 +228,12 @@ function renderReceipt(){
   addRow("Tip (20%)",money(tip));
   const hr2=document.createElement("div");hr2.className="hr";r.append(hr2);
   addRow("Total",money(total),"total");
-  // plain-text version for copying
-  const txt=["Dog sitting · "+sitter];
-  if(s&&e)txt.push(dtFmt.format(s)+" → "+dtFmt.format(e));
-  txt.push("");
-  for(const l of lines)txt.push(l.when+" · "+SHORT[l.kind]+": "+money(+l.amount||0));
-  const summary=Object.entries(counts).map(([k,n])=>n+" "+SHORT[k].toLowerCase()+(n>1?"s":"")).join(", ");
-  txt.push("",summary?"("+summary+")":"","Subtotal: "+money(sub),"Tip (20%): "+money(tip),"Total: "+money(total));
+  // text message version: one bullet per kind of charge
+  const txt=[];
+  if(s&&e)txt.push(dayFmt.format(s)+" to "+dayFmt.format(e),"");
+  const groups={};for(const l of lines){const k=l.kind+"|"+(+l.amount||0);(groups[k]=groups[k]||{kind:l.kind,amt:+l.amount||0,n:0}).n++}
+  for(const k of Object.keys(KIND_LABEL))for(const g of Object.values(groups))if(g.kind===k)txt.push("• "+g.n+" "+SHORT[k].toLowerCase()+(g.n>1?"s":"")+" × "+money(g.amt)+" = "+money(g.n*g.amt));
+  txt.push("","Subtotal: "+money(sub),"Tip (20%): "+money(tip),"TOTAL: "+money(total));
   $("shareText").value=txt.filter((x,i,a)=>!(x===""&&a[i-1]==="")).join("\n");
   $("textIt").href="sms:"+PHONES[sitter]+"?&body="+encodeURIComponent(fullMsg());
   $("textIt").textContent="Text "+sitter;
