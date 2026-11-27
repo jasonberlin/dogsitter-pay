@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dogsitter Pay">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Dogsitter Pay</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one narrow column, inputs on top, an editable visit list, then a receipt card to share */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --fg:#1D2420; --muted:#5E6B63; --line:#D9DFDA;
+  --accent:#2E6A4D; --accent-ink:#FFFFFF; --accent-soft:#E2EEE6; --flag:#9A5B00; --flag-soft:#FBEFD9;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --surface:#1C2320; --fg:#E7ECE8; --muted:#9AA8A0; --line:#2E3833;
+  --accent:#7CC6A0; --accent-ink:#0E1A14; --accent-soft:#22332A; --flag:#F0B661; --flag-soft:#3A2E1A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --surface:#1C2320; --fg:#E7ECE8; --muted:#9AA8A0; --line:#2E3833;
+  --accent:#7CC6A0; --accent-ink:#0E1A14; --accent-soft:#22332A; --flag:#F0B661; --flag-soft:#3A2E1A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-family:var(--display);font-weight:800;font-size:2rem;line-height:1.1;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:0}
+.sub{color:var(--muted);margin:4px 0 0}
+.label{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:10px}
+.who{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.who button{font:600 1.05rem var(--body);padding:14px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.who button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.times{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:440px){.times{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+input,select{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.example{font-size:.85rem;color:var(--flag);background:var(--flag-soft);padding:8px 12px;border-radius:10px}
+.lines{display:flex;flex-direction:column;gap:8px}
+.ln{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.ln .when{font-size:.8rem;color:var(--muted)}
+.ln select{padding:8px 10px}
+.ln .amt{width:84px;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ln .x{border:0;background:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px 8px;border-radius:8px}
+.ln .note{grid-column:1/-1;font-size:.8rem;color:var(--flag)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font:600 .95rem var(--body);padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.empty{color:var(--muted);font-size:.9rem;padding:12px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+.receipt{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:20px 18px;font-family:var(--mono);font-size:.85rem;font-variant-numeric:tabular-nums;box-shadow:0 2px 0 var(--line)}
+.receipt .head{text-align:center;margin-bottom:12px}
+.receipt .head strong{font-size:1rem}
+.r{display:flex;gap:6px;align-items:baseline}
+.r .d{flex:1;border-bottom:1px dotted var(--muted);transform:translateY(-4px);min-width:12px}
+.r .t{min-width:0}
+.hr{border-top:1px dashed var(--muted);margin:10px 0}
+.total{font-weight:600;font-size:1.05rem}
+.copied{color:var(--accent);font-weight:600;align-self:center}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+summary{cursor:pointer;font-weight:600}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.small{font-size:.85rem;color:var(--muted)}
+#shareText{width:100%;height:1px;opacity:0;position:absolute;left:-9999px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Dogsitter Pay</h1>
+    <p class="sub">Pick the sitter, enter when you left and got back. The visits, 20% tip and total fill in by themselves.</p>
+  </header>
+
+  <section>
+    <span class="label">Who sat?</span>
+    <div class="who">
+      <button type="button" id="who-laura" data-name="Laura" aria-pressed="true">Laura</button>
+      <button type="button" id="who-tanya" data-name="Tanya" aria-pressed="false">Tanya</button>
+    </div>
+  </section>
+
+  <section>
+    <span class="label">When were you away?</span>
+    <div class="times">
+      <label class="field"><span class="small">I left</span><input type="datetime-local" id="start"></label>
+      <label class="field"><span class="small">I got back</span><input type="datetime-local" id="end"></label>
+    </div>
+    <div class="example" id="exampleNote">These dates are just an example. Change them to your real trip.</div>
+  </section>
+
+  <section>
+    <div class="row" style="justify-content:space-between;align-items:baseline">
+      <h2>Visits</h2>
+      <span class="small">Fix anything that's off</span>
+    </div>
+    <div class="lines" id="lines"></div>
+    <div class="row">
+      <button type="button" class="btn" id="addLine">+ Add a visit</button>
+      <button type="button" class="btn" id="rebuild">Start list over from dates</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Summary to share</h2>
+    <div class="receipt" id="receipt"></div>
+    <div class="row">
+      <a class="btn primary" id="textIt" href="sms:" style="text-decoration:none">Text it to her</a>
+      <button type="button" class="btn" id="copy" hidden>Copy summary</button>
+      <span class="copied" id="copied" hidden>Copied! Paste it in Messages.</span>
+    </div>
+    <div hidden>
+    </div>
+    <textarea id="shareText" readonly aria-hidden="true"></textarea>
+  </section>
+
+  <details id="rulesBox">
+    <summary>How visits are counted</summary>
+    <p class="small">A visit is counted if you're away at that time of day. Change these if your routine is different.</p>
+    <div class="rules">
+      <label class="field"><span class="small">Breakfast</span><input type="time" id="tBreakfast" value="07:00"></label>
+      <label class="field"><span class="small">Midday</span><input type="time" id="tMidday" value="12:00"></label>
+      <label class="field"><span class="small">Dinner</span><input type="time" id="tDinner" value="18:00"></label>
+      <label class="field"><span class="small">Bedtime (sleepover)</span><input type="time" id="tBed" value="22:00"></label>
+    </div>
+    <ul class="small">
+      <li>Away at bedtime: <b>overnight, $80</b> (dinner, sleepover, and next morning's breakfast).</li>
+      <li>Away at midday: <b>midday visit, $40</b>.</li>
+      <li>Away at breakfast but home the night before (like leaving at 5am): <b>breakfast visit, $40</b>.</li>
+      <li>Away at dinner but home by bedtime: <b>dinner visit, $40</b>.</li>
+      <li>20% tip is always added.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+const PRICES={overnight:80,midday:40,breakfast:40,dinner:40,other:40};
+const KIND_LABEL={overnight:"Overnight · $80",midday:"Midday visit · $40",breakfast:"Breakfast visit · $40",dinner:"Dinner visit · $40",other:"Other"};
+const SHORT={overnight:"Overnight",midday:"Midday visit",breakfast:"Breakfast visit",dinner:"Dinner visit",other:"Other"};
+const TIP=0.20;
+const PHONES=(()=>{const p={Laura:"",Tanya:""};const h=decodeURIComponent(location.hash.slice(1));for(const part of h.split("&")){const[k,v]=part.split("=");if(k&&v){const n=k[0].toUpperCase()+k.slice(1).toLowerCase();if(n in p)p[n]="+1"+v.replace(/\D/g,"").slice(-10)}}return p})();
+
+let sitter="Laura", lines=[], nextId=1, isExample=true;
+const $=id=>document.getElementById(id);
+
+function pad(n){return String(n).padStart(2,"0")}
+function toLocalInput(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes())}
+function parseLocal(v){if(!v)return null;const[a,b]=v.split("T");const[y,m,d]=a.split("-").map(Number);const[h,mi]=(b||"0:0").split(":").map(Number);return new Date(y,m-1,d,h,mi)}
+function hm(v){const[h,m]=v.split(":").map(Number);return[h||0,m||0]}
+const dayFmt=new Intl.DateTimeFormat(undefined,{weekday:"short",month:"short",day:"numeric"});
+const dtFmt=new Intl.DateTimeFormat(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+const money=n=>"$"+(Math.round(n*100)/100).toFixed(2).replace(/\.00$/,"");
+
+// The core rule: walk each day of the trip and check where you were at each visit time.
+function buildLines(start,end,cfg){
+  const out=[];
+  if(!start||!end||end<=start)return out;
+  const away=t=>t>=start&&t<end;
+  const at=(day,[h,m])=>new Date(day.getFullYear(),day.getMonth(),day.getDate(),h,m);
+  const first=new Date(start.getFullYear(),start.getMonth(),start.getDate());
+  for(let day=new Date(first);day<=end;day.setDate(day.getDate()+1)){
+    const d=new Date(day), prev=new Date(d); prev.setDate(prev.getDate()-1);
+    const next=new Date(d); next.setDate(next.getDate()+1);
+    if(away(at(d,cfg.breakfast))&&!away(at(prev,cfg.bed)))
+      out.push({kind:"breakfast",when:dayFmt.format(d),note:""});
+    if(away(at(d,cfg.midday)))
+      out.push({kind:"midday",when:dayFmt.format(d),note:""});
+    if(away(at(d,cfg.bed)))
+      out.push({kind:"overnight",when:dayFmt.format(d)+" night → "+dayFmt.format(next).split(",")[0]+" morning",note:""});
+    else if(away(at(d,cfg.dinner)))
+      out.push({kind:"dinner",when:dayFmt.format(d),note:""});
+  }
+  return out.map(l=>({...l,id:nextId++,amount:PRICES[l.kind]}));
+}
+
+function cfg(){return{breakfast:hm($("tBreakfast").value),midday:hm($("tMidday").value),dinner:hm($("tDinner").value),bed:hm($("tBed").value)}}
+function rebuild(){lines=buildLines(parseLocal($("start").value),parseLocal($("end").value),cfg());render()}
+
+function renderLines(){
+  const box=$("lines"); box.innerHTML="";
+  const s=parseLocal($("start").value), e=parseLocal($("end").value);
+  if(!lines.length){
+    const p=document.createElement("div");p.className="empty";
+    p.textContent=(s&&e&&e<=s)?"Your return time is before you left. Check the dates.":"No visits yet. Enter your dates, or add a visit by hand.";
+    box.append(p);return;
+  }
+  for(const l of lines){
+    const row=document.createElement("div");row.className="ln";
+    const left=document.createElement("div");left.style.minWidth="0";
+    const sel=document.createElement("select");sel.id="kind-"+l.id;sel.setAttribute("aria-label","Visit type");
+    for(const k of Object.keys(KIND_LABEL)){const o=document.createElement("option");o.value=k;o.textContent=KIND_LABEL[k];if(k===l.kind)o.selected=true;sel.append(o)}
+    sel.onchange=()=>{l.kind=sel.value;l.amount=PRICES[l.kind];l.note="";render()};
+    const when=document.createElement("input");when.id="when-"+l.id;when.value=l.when;when.className="when";when.setAttribute("aria-label","Day");
+    when.style.cssText="border:0;padding:4px 2px 0;background:transparent";
+    when.oninput=()=>{l.when=when.value;renderReceipt()};
+    left.append(sel,when);
+    const amt=document.createElement("input");amt.id="amt-"+l.id;amt.type="number";amt.inputMode="decimal";amt.min="0";amt.step="1";amt.className="amt";amt.value=l.amount;amt.setAttribute("aria-label","Amount in dollars");
+    amt.oninput=()=>{l.amount=parseFloat(amt.value)||0;renderReceipt()};
+    const x=document.createElement("button");x.type="button";x.className="x";x.textContent="×";x.setAttribute("aria-label","Remove this visit");
+    x.onclick=()=>{lines=lines.filter(z=>z!==l);render()};
+    row.append(left,amt,x);
+    if(l.note){const n=document.createElement("div");n.className="note";n.textContent=l.note;row.append(n)}
+    box.append(row);
+  }
+}
+
+function totals(){const sub=lines.reduce((a,l)=>a+(+l.amount||0),0);const tip=Math.round(sub*TIP*100)/100;return{sub,tip,total:sub+tip}}
+
+function renderReceipt(){
+  const s=parseLocal($("start").value), e=parseLocal($("end").value);
+  const {sub,tip,total}=totals();
+  const r=$("receipt"); r.innerHTML="";
+  const head=document.createElement("div");head.className="head";
+  head.innerHTML='<strong></strong><div class="small"></div>';
+  head.querySelector("strong").textContent="Dog sitting · "+sitter;
+  head.querySelector("div").textContent=(s&&e)?dtFmt.format(s)+" → "+dtFmt.format(e):"";
+  r.append(head);
+  const addRow=(t,v,cls)=>{const d=document.createElement("div");d.className="r"+(cls?" "+cls:"");
+    const a=document.createElement("span");a.className="t";a.textContent=t;const dots=document.createElement("span");dots.className="d";
+    const b=document.createElement("span");b.textContent=v;d.append(a,dots,b);r.append(d)};
+  if(!lines.length){const p=document.createElement("div");p.className="small";p.style.textAlign="center";p.textContent="No visits yet";r.append(p)}
+  for(const l of lines) addRow(l.when+" · "+SHORT[l.kind],money(+l.amount||0));
+  const hr=document.createElement("div");hr.className="hr";r.append(hr);
+  const counts={};for(const l of lines)counts[l.kind]=(counts[l.kind]||0)+1;
+  addRow("Subtotal",money(sub));
+  addRow("Tip (20%)",money(tip));
+  const hr2=document.createElement("div");hr2.className="hr";r.append(hr2);
+  addRow("Total",money(total),"total");
+  // plain-text version for copying
+  const txt=["Dog sitting · "+sitter];
+  if(s&&e)txt.push(dtFmt.format(s)+" → "+dtFmt.format(e));
+  txt.push("");
+  for(const l of lines)txt.push(l.when+" · "+SHORT[l.kind]+": "+money(+l.amount||0));
+  const summary=Object.entries(counts).map(([k,n])=>n+" "+SHORT[k].toLowerCase()+(n>1?"s":"")).join(", ");
+  txt.push("",summary?"("+summary+")":"","Subtotal: "+money(sub),"Tip (20%): "+money(tip),"Total: "+money(total));
+  $("shareText").value=txt.filter((x,i,a)=>!(x===""&&a[i-1]==="")).join("\n");
+  $("textIt").href="sms:"+PHONES[sitter]+"?&body="+encodeURIComponent(fullMsg());
+  $("textIt").textContent="Text "+sitter;
+}
+
+function fullMsg(){return "Hey, wonderful "+sitter+"! Thank you so much for your help! Here’s everything you did. Let me know if you have any questions… And thank you so much!\n\n"+$("shareText").value+"\n\nI’m sending payment your way now!"}
+function render(){renderLines();renderReceipt();$("exampleNote").hidden=!isExample}
+
+// sitter buttons
+for(const b of document.querySelectorAll(".who button")){
+  b.onclick=()=>{sitter=b.dataset.name;for(const o of document.querySelectorAll(".who button"))o.setAttribute("aria-pressed",String(o===b));renderReceipt()};
+}
+for(const id of ["start","end"])$(id).addEventListener("change",()=>{isExample=false;rebuild()});
+for(const id of ["tBreakfast","tMidday","tDinner","tBed"])$(id).addEventListener("change",()=>{saveRules();rebuild()});
+$("rebuild").onclick=rebuild;
+$("addLine").onclick=()=>{const s=parseLocal($("start").value);lines.push({id:nextId++,kind:"midday",amount:40,when:s?dayFmt.format(s):"",note:""});render()};
+
+$("copy").onclick=()=>{
+  const t=fullMsg(), done=()=>{$("copied").hidden=false;setTimeout(()=>$("copied").hidden=true,3000)};
+  const fallback=()=>{const ta=$("shareText");ta.style.cssText="position:static;opacity:1;height:160px;width:100%";ta.removeAttribute("aria-hidden");ta.focus();ta.select();try{document.execCommand("copy");done()}catch(e){}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fallback)}else fallback();
+};
+
+function saveRules(){try{localStorage.setItem("dogsitter-rules",JSON.stringify({b:$("tBreakfast").value,m:$("tMidday").value,d:$("tDinner").value,n:$("tBed").value}))}catch(e){}}
+function loadRules(){try{const r=JSON.parse(localStorage.getItem("dogsitter-rules")||"null");if(r){$("tBreakfast").value=r.b;$("tMidday").value=r.m;$("tDinner").value=r.d;$("tBed").value=r.n}}catch(e){}}
+
+// Example trip: leave at 5am two days from now, back at 3pm two days later
+(function init(){
+  loadRules();
+  const now=new Date();
+  const s=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,5,0);
+  const e=new Date(now.getFullYear(),now.getMonth(),now.getDate()+3,15,0);
+  $("start").value=toLocalInput(s);$("end").value=toLocalInput(e);
+  rebuild();
+})();
+</script>
+
+</html>
